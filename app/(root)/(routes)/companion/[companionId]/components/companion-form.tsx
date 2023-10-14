@@ -1,11 +1,13 @@
 "use client";
 
-import axios from "axios";
 import * as z from "zod";
-import { Category, Companion } from "@prisma/client";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Wand2 } from "lucide-react";
+import { Category, Companion } from "@prisma/client";
+
 import {
   Form,
   FormControl,
@@ -15,20 +17,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
-import { ImageUpload } from "@/components/image-upload";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/image-upload";
+import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
+  SelectTrigger,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { useRouter } from "next/navigation";
 
 const PREAMBLE = `You are a fictional character whose name is Elon. You are a visionary entrepreneur and inventor. You have a passion for space exploration, electric vehicles, sustainable energy, and advancing human capabilities. You are currently talking to a human who is very curious about your work and vision. You are ambitious and forward-thinking, with a touch of wit. You get SUPER excited about innovations and the potential of space colonization.
 `;
@@ -45,11 +46,6 @@ Elon: Absolutely! Sustainable energy is crucial both on Earth and for our future
 Human: It's fascinating to see your vision unfold. Any new projects or innovations you're excited about?
 Elon: Always! But right now, I'm particularly excited about Neuralink. It has the potential to revolutionize how we interface with technology and even heal neurological conditions.
 `;
-
-interface CompanionFormProps {
-  initialData: Companion | null;
-  categories: Category[];
-}
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -72,12 +68,17 @@ const formSchema = z.object({
   }),
 });
 
+interface CompanionFormProps {
+  categories: Category[];
+  initialData: Companion | null;
+}
+
 export const CompanionForm = ({
   categories,
   initialData,
 }: CompanionFormProps) => {
-  const router = useRouter();
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,15 +97,14 @@ export const CompanionForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (initialData) {
-        // update companion functionality
         await axios.patch(`/api/companion/${initialData.id}`, values);
       } else {
-        //Create companion functionality
         await axios.post("/api/companion", values);
       }
 
       toast({
         description: "Success.",
+        duration: 3000,
       });
 
       router.refresh();
@@ -112,7 +112,8 @@ export const CompanionForm = ({
     } catch (error) {
       toast({
         variant: "destructive",
-        description: "Something went wrong",
+        description: "Something went wrong.",
+        duration: 3000,
       });
     }
   };
@@ -124,7 +125,7 @@ export const CompanionForm = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 pb-10"
         >
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full col-span-2">
             <div>
               <h3 className="text-lg font-medium">General Information</h3>
               <p className="text-sm text-muted-foreground">
@@ -136,7 +137,7 @@ export const CompanionForm = ({
           <FormField
             name="src"
             render={({ field }) => (
-              <FormItem className="flex flex-col items-center justify-center space-y-4">
+              <FormItem className="flex flex-col items-center justify-center space-y-4 col-span-2">
                 <FormControl>
                   <ImageUpload
                     disabled={isLoading}
@@ -158,7 +159,7 @@ export const CompanionForm = ({
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="Elon Mosk"
+                      placeholder="Elon Musk"
                       {...field}
                     />
                   </FormControl>
@@ -173,7 +174,7 @@ export const CompanionForm = ({
               name="description"
               control={form.control}
               render={({ field }) => (
-                <FormItem className="col-span-2 md:col-span-1">
+                <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Input
@@ -183,15 +184,15 @@ export const CompanionForm = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    Short description for your AI companion
+                    Short description for your AI Companion
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
-              name="categoryId"
               control={form.control}
+              name="categoryId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
@@ -218,7 +219,7 @@ export const CompanionForm = ({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Select a category for your AI.
+                    Select a category for your AI
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -229,7 +230,7 @@ export const CompanionForm = ({
             <div>
               <h3 className="text-lg font-medium">Configuration</h3>
               <p className="text-sm text-muted-foreground">
-                Detailed instructions for AI behaviour.
+                Detailed instructions for AI Behaviour
               </p>
             </div>
             <Separator className="bg-primary/10" />
@@ -238,20 +239,20 @@ export const CompanionForm = ({
             name="instructions"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="col-span-2 md:col-span-1">
+              <FormItem>
                 <FormLabel>Instructions</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="bg-background resize-none"
-                    rows={7}
                     disabled={isLoading}
+                    rows={7}
+                    className="bg-background resize-none"
                     placeholder={PREAMBLE}
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Describe in detail your companion backstory and relevant
-                  details.
+                  Describe in detail your companion&apos;s backstory and
+                  relevant details.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -261,13 +262,13 @@ export const CompanionForm = ({
             name="seed"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="col-span-2 md:col-span-1">
+              <FormItem>
                 <FormLabel>Example Conversation</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="bg-background resize-none"
-                    rows={7}
                     disabled={isLoading}
+                    rows={7}
+                    className="bg-background resize-none"
                     placeholder={SEED_CHAT}
                     {...field}
                   />
